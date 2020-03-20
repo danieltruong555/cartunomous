@@ -1,0 +1,4 @@
+0 speedLimit25
+1 speedLimit35
+2 speedLimit45
+3 stop

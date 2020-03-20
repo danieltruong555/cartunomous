@@ -15,13 +15,13 @@ def detect_objects(frame):
 	gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
 	#stop sign detection
-	stop_signs = stop_sign_cascade.detectMultiScale(gray, minNeighbors=10, minSize= (30, 30))
+	'''stop_signs = stop_sign_cascade.detectMultiScale(gray, minNeighbors=10, minSize= (30, 30))
 	
 	for (x, y,  w, h) in stop_signs:
 		logging.info("Stop sign detected. Stop.")
 		cv2.rectangle(frame, (x, y), (x+w, y+h), (0, 255, 255), 2)
 		cv2.putText(frame, 'Stop', org=(x, y), fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=0.7, color=(0, 0, 255), thickness=2)
-		return frame, True
+		return frame, True'''
 	
 	#traffic light detection
 	traffic_lights = traffic_light_cascade.detectMultiScale(gray, minNeighbors=0)
@@ -49,7 +49,7 @@ def detect_objects(frame):
 
 	return frame, False
 
-def detect_lanes(frame, index, is_recording):
+def detect_lanes(frame, index):
 	hsv_image = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
 	
 	#cv2.imshow("hsv", hsv_image)
@@ -59,14 +59,13 @@ def detect_lanes(frame, index, is_recording):
 	upper_blue = np.array([6, 180, 255])
 	hsv_mask = cv2.inRange(hsv_image, lower_blue, upper_blue)
 	
-	if(is_recording):
-		cv2.imshow("hsv_mask", hsv_mask)
+
+	cv2.imshow("hsv_mask", hsv_mask)
 
 	# edge detection
 	#denoise = cv2.GaussianBlur(hsv_mask, (5, 5), 0)  # blurs and reduces noise
 	edge = cv2.Canny(hsv_mask, 200, 400)  # returns edge detected image(white=edge, black=background)
-	if(is_recording):
-		cv2.imshow("canny", edge)
+	cv2.imshow("canny", edge)
 
 
 	height, width = edge.shape[:2]
@@ -80,17 +79,14 @@ def detect_lanes(frame, index, is_recording):
 	cv2.fillPoly(mask, polygon, 255)  # draw white polygon in the mask image
 	roi = cv2.bitwise_and(edge, mask)
 
-	if(is_recording):
-		cv2.imshow("roi", roi)
-		cv2.imshow('mask', mask)
+	cv2.imshow("roi", roi)
+	cv2.imshow('mask', mask)
 	# line detection
 	lines = cv2.HoughLinesP(roi, 1, np.pi / 180, 10, np.array([]), minLineLength=16, maxLineGap=4)
 
 	hough = display_lines(frame, lines)
 	hough_image = cv2.addWeighted(frame, 0.8, hough, 1, 0)
-	
-	if(is_recording):
-		cv2.imshow('hough', hough_image)
+	cv2.imshow('hough', hough_image)
 
 	best_fit_lines = compute_best_fit_line(frame, lines)
 	if len(best_fit_lines) > 0:
@@ -98,14 +94,12 @@ def detect_lanes(frame, index, is_recording):
 		lane_image = cv2.addWeighted(frame, 0.8, hough, 1, 0)
 		x1, y1, x2, y2, steering_angle = compute_steering_line(frame, best_fit_lines)
 		#cv2.line(lane_image, (x1, y1), (x2, y2), (255, 0, 0), 2)
-		
-		if(is_recording):
-			cv2.imwrite('demo/images/lane/lane{}.png'.format(index), lane_image)
-			cv2.imwrite('demo/images/hsv/hsv{}.png'.format(index), hsv_mask)
-			cv2.imwrite('demo/images/canny/canny{}.png'.format(index), edge)
-			cv2.imwrite('demo/images/roi/roi{}.png'.format(index), roi)
-			cv2.imwrite('demo/images/mask.png', mask)
-			cv2.imwrite('demo/images/hough/hough{}.png'.format(index), hough_image)
+		cv2.imwrite('demo/images/lane/lane{}.png'.format(index), lane_image)
+		cv2.imwrite('demo/images/hsv/hsv{}.png'.format(index), hsv_mask)
+		cv2.imwrite('demo/images/canny/canny{}.png'.format(index), edge)
+		cv2.imwrite('demo/images/roi/roi{}.png'.format(index), roi)
+		cv2.imwrite('demo/images/mask.png', mask)
+		cv2.imwrite('demo/images/hough/hough{}.png'.format(index), hough_image)
 		return lane_image, steering_angle, len(best_fit_lines)
 	
 	
